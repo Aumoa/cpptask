@@ -1089,6 +1089,9 @@ namespace threading::tasks
 			return task<U>(u_awaiter);
 		}
 
+		template<class TBody>
+		static task<std::invoke_result_t<TBody>> start_new(TBody&& body, std::stop_token s_token = {});
+
 		static auto yield()
 		{
 			static_assert(std::is_void_v<T>, "Use task<>::yield instead.");
@@ -1221,6 +1224,36 @@ namespace threading::tasks
 			}
 		}
 	};
+
+	template<class T>
+	template<class TBody>
+	task<std::invoke_result_t<TBody>> task<T>::start_new(TBody&& body, std::stop_token s_token)
+	{
+		using result_t = std::invoke_result_t<TBody>;
+		auto tcs = task_completion_source<>::create<result_t>(s_token);
+		std::thread([tcs, body = std::forward<TBody>(body)]() mutable
+		{
+			try
+			{
+				if constexpr (std::is_void_v<T>)
+				{
+					body();
+					tcs.set_result();
+				}
+				else
+				{
+					auto r = body();
+					tcs.set_result(std::move(r));
+				}
+			}
+			catch (...)
+			{
+				tcs.set_exception(std::current_exception());
+			}
+		}).detach();
+
+		return tcs.get_task();
+	}
 }
 
 template<class TOwningClass, class... TArgs>
