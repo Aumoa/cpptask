@@ -17,7 +17,7 @@
 #include <ranges>
 #include <expected>
 
-namespace threading::tasks
+namespace cpptask
 {
 	namespace details
 	{
@@ -890,8 +890,8 @@ namespace threading::tasks
 		friend class task;
 
 	public:
-		using promise_type = ::threading::tasks::details::promise_type<T, task<T>>;
-		using awaiter_t = ::threading::tasks::details::awaiter<T>;
+		using promise_type = ::cpptask::details::promise_type<T, task<T>>;
+		using awaiter_t = ::cpptask::details::awaiter<T>;
 		using value_t = T;
 
 	private:
@@ -1259,11 +1259,11 @@ namespace threading::tasks
 template<class TOwningClass, class... TArgs>
 struct std::coroutine_traits<void, TOwningClass&, TArgs...>
 {
-	using promise_type = threading::tasks::details::async_void_promise_type;
+	using promise_type = cpptask::details::async_void_promise_type;
 };
 
 template<class... TArgs>
 struct std::coroutine_traits<void, TArgs...>
 {
-	using promise_type = threading::tasks::details::async_void_promise_type;
+	using promise_type = cpptask::details::async_void_promise_type;
 };

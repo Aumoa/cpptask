@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(threading-tasks VERSION 1.0.0 LANGUAGES CXX)
+project(cpptask VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,9 +16,9 @@ file(GLOB_RECURSE SOURCES
 	"src/*.cxx"
 )
 
-add_library(threading-tasks ${SOURCES})
+add_library(cpptask ${SOURCES})
 
-target_include_directories(threading-tasks 
+target_include_directories(cpptask 
 	PUBLIC 
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 		$<INSTALL_INTERFACE:include>
@@ -26,29 +26,29 @@ target_include_directories(threading-tasks
 		${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-target_compile_features(threading-tasks PUBLIC cxx_std_23)
+target_compile_features(cpptask PUBLIC cxx_std_23)
 
 if(WIN32)
-    target_compile_definitions(threading-tasks PUBLIC PLATFORM_WINDOWS)
+    target_compile_definitions(cpptask PUBLIC PLATFORM_WINDOWS)
     if(MSVC)
-        target_compile_definitions(threading-tasks PUBLIC COMPILER_MSVC)
+        target_compile_definitions(cpptask PUBLIC COMPILER_MSVC)
     endif()
 elseif(UNIX AND NOT APPLE)
-    target_compile_definitions(threading-tasks PUBLIC PLATFORM_LINUX)
+    target_compile_definitions(cpptask PUBLIC PLATFORM_LINUX)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        target_compile_definitions(threading-tasks PUBLIC COMPILER_GCC)
+        target_compile_definitions(cpptask PUBLIC COMPILER_GCC)
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        target_compile_definitions(threading-tasks PUBLIC COMPILER_CLANG)
+        target_compile_definitions(cpptask PUBLIC COMPILER_CLANG)
     endif()
 elseif(APPLE)
-    target_compile_definitions(threading-tasks PUBLIC PLATFORM_MACOS)
+    target_compile_definitions(cpptask PUBLIC PLATFORM_MACOS)
 endif()
 
 find_package(Threads REQUIRED)
-target_link_libraries(threading-tasks PRIVATE Threads::Threads)
+target_link_libraries(cpptask PRIVATE Threads::Threads)
 
-install(TARGETS threading-tasks
-    EXPORT threading-tasks-targets
+install(TARGETS cpptask
+    EXPORT cpptask-targets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
@@ -60,7 +60,7 @@ install(DIRECTORY include/
     FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
 )
 
-install(EXPORT threading-tasks-targets
-    FILE threading-tasks-config.cmake
-    DESTINATION lib/cmake/threading-tasks
+install(EXPORT cpptask-targets
+    FILE cpptask-config.cmake
+    DESTINATION lib/cmake/cpptask
 )
