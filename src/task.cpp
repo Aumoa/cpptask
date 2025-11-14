@@ -16,7 +16,7 @@
     #include <pthread.h>
 #endif
 
-namespace threading::tasks::details
+namespace cpptask::details
 {
 	static void set_current_thread_name(const std::string& name)
 	{
