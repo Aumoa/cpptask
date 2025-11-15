@@ -267,9 +267,10 @@ namespace cpptask
 	{
 	public:
 		task_canceled_exception() noexcept
-			: std::exception("The task was canceled.")
 		{
 		}
+
+		virtual const char* what() const noexcept { return "The task was canceled."; }
 	};
 
 	enum class task_status
@@ -607,6 +608,8 @@ namespace cpptask
 			{
 				return _status == task_status::faulted;
 			}
+			
+			using awaiter_base::set_result;
 
 			template<class... U>
 			void set_result(U&&... args) requires
