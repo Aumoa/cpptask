@@ -365,7 +365,6 @@ namespace cpptask
 			virtual bool wait_until(const std::chrono::steady_clock::time_point& timeout) noexcept = 0;
 
 			virtual void cancel() = 0;
-			virtual void set_result() { throw std::runtime_error("A typed task cannot setting result without value."); }
 			virtual bool set_exception(std::exception_ptr in_exception_ptr) = 0;
 
 			virtual suspend_and_destroy_if add_stop_token(std::stop_token s_token) = 0;
@@ -608,8 +607,6 @@ namespace cpptask
 			{
 				return _status == task_status::faulted;
 			}
-			
-			using awaiter_base::set_result;
 
 			template<class... U>
 			void set_result(U&&... args) requires
