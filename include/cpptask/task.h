@@ -7,6 +7,7 @@
 #include "cpptask/details/task_awaiter.h"
 #include "cpptask/details/async_void_promise_type.h"
 #include <coroutine>
+#include <thread>
 
 namespace cpptask
 {

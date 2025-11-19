@@ -39,15 +39,15 @@ namespace cpptask::details
 
 	static std::mutex g_lock;
 	static std::condition_variable g_cv;
-	static std::queue<std::move_only_function<void()>> g_work_items;
+	static std::queue<thread_pool::function_t<void()>> g_work_items;
 
 	static std::mutex g_delayed_lock;
 	static std::condition_variable g_delayed_cv;
-	static std::multimap<std::chrono::steady_clock::time_point, std::move_only_function<void()>> g_delayed_work_items;
+	static std::multimap<std::chrono::steady_clock::time_point, thread_pool::function_t<void()>> g_delayed_work_items;
 
 	static void worker_main(size_t thread_index)
 	{
-		std::move_only_function<void()> work_item;
+		thread_pool::function_t<void()> work_item;
 		set_current_thread_name(std::format("worker #{}", thread_index));
 
 		while (g_running)
@@ -66,13 +66,13 @@ namespace cpptask::details
 				lock.unlock();
 			}
 
-			std::exchange(work_item, std::move_only_function<void()>{})();
+			std::exchange(work_item, thread_pool::function_t<void()>{})();
 		}
 	}
 
 	static void delayed_worker_main()
 	{
-		std::vector<std::move_only_function<void()>> actions;
+		std::vector<thread_pool::function_t<void()>> actions;
 		set_current_thread_name("delayed_worker");
 
 		while (g_running)
@@ -168,7 +168,7 @@ namespace cpptask::details
 		} _;
 	}
 
-	void thread_pool::queue_user_work_item(std::move_only_function<void()> continuation)
+	void thread_pool::queue_user_work_item(thread_pool::function_t<void()> continuation)
 	{
 		try_bootstrap();
 
@@ -177,7 +177,7 @@ namespace cpptask::details
 		g_cv.notify_one();
 	}
 
-	void thread_pool::queue_delayed_user_work_item(std::chrono::nanoseconds delay, std::move_only_function<void()> continuation)
+	void thread_pool::queue_delayed_user_work_item(std::chrono::nanoseconds delay, thread_pool::function_t<void()> continuation)
 	{
 		try_bootstrap();
 

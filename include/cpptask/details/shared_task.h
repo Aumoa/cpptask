@@ -19,6 +19,14 @@ namespace cpptask::details
 	template<class T>
 	class shared_task
 	{
+	public:
+		template<class TBody>
+#if __cpp_lib_move_only_function
+		using function_t = std::move_only_function<TBody>;
+#else
+		using function_t = std::function<TBody>;
+#endif
+
 	private:
 		mutable std::mutex _mutex;
 		mutable std::condition_variable _future;
@@ -27,8 +35,8 @@ namespace cpptask::details
 		task_status _status = task_status::created;
 		std::exception_ptr _exception_ptr;
 
-		std::vector<std::move_only_function<void()>> _continuations;
-		std::optional<std::stop_callback<std::move_only_function<void()>>> _sc;
+		std::vector<function_t<void()>> _continuations;
+		std::optional<std::stop_callback<function_t<void()>>> _sc;
 
 	public:
 		shared_task(std::stop_token s_token = {})
@@ -59,7 +67,7 @@ namespace cpptask::details
 			return _status;
 		}
 
-		void then(std::move_only_function<void()> continuation)
+		void then(function_t<void()> continuation)
 		{
 			std::unique_lock lock(_mutex);
 			if (is_completed())
