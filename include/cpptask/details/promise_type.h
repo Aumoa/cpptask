@@ -38,7 +38,7 @@ namespace cpptask::details
 
         auto unhandled_exception() noexcept
         {
-            bool b = _task.try_set_exception(std::current_exception());
+            bool b = _task->try_set_exception(std::current_exception());
             assert(b);
         }
 

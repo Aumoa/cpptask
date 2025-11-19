@@ -13,22 +13,21 @@ void sigint_handler(int)
     g_ss.request_stop();
 }
 
+cpptask::task<int> main_async()
+{
+    std::println("main_async: tid: {}", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+    co_return 0;
+}
+
 int main()
 {
     signal(SIGINT, sigint_handler);
 
     try
     {
-        std::println("begin unit test");
-        int e = cpptask::task<>::run([]
-        {
-            std::println("Thread ID hash: {}", std::hash<std::thread::id>{}(std::this_thread::get_id()));
-            return 0;
-        }).get_result();
-
-        {
-            std::println("e: {}, tid: {}", e, std::hash<std::thread::id>{}(std::this_thread::get_id()));
-        }
+        std::println("main: tid: {}", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+        int e = main_async().get_result();
+        std::println("e: {}, tid: {}", e, std::hash<std::thread::id>{}(std::this_thread::get_id()));
     }
     catch (const cpptask::task_canceled_exception&)
     {
