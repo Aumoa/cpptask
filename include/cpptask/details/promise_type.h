@@ -42,8 +42,9 @@ namespace cpptask::details
             assert(b);
         }
 
-        constexpr auto initial_suspend() const noexcept
+        auto initial_suspend() noexcept
         {
+            _task->transit_to_running();
             return std::suspend_never();
         }
 

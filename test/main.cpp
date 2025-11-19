@@ -1,6 +1,6 @@
 // Copyright 2020-2025 Aumoa.lib. All right reserved.
 
-#include "cpptask/task.h"
+#include "cpptask.h"
 #include <csignal>
 #include <stop_token>
 #include <print>
@@ -33,6 +33,33 @@ cpptask::task<int> main_async(std::stop_token s_token)
             std::println("task body working... {}", i);
         }
     }, s_token);
+
+    auto tcs = cpptask::task_completion_source<int>::create();
+    std::thread myt([tcs]()
+    {
+        std::println("tcs setter thread: tid: {}", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        tcs.set_result(42);
+    });
+    int myt_ret = co_await tcs.get_task();
+    std::println("tcs result: {} tid: {}", myt_ret, std::hash<std::thread::id>{}(std::this_thread::get_id()));
+    myt.join();
+
+    co_await cpptask::task<>::start_new([s_token]()
+    {
+        std::println("start_new task body: tid: {}", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+        for (int i = 0; i < 5; i++)
+        {
+            if (s_token.stop_requested())
+            {
+                std::println("start_new task body detected stop request: tid: {}", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+                throw cpptask::task_canceled_exception();
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+            std::println("start_new task body working... {}", i);
+        }
+    }, s_token);
+    
     co_return 0;
 }
 

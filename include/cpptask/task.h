@@ -74,6 +74,8 @@ namespace cpptask
 
 			details::thread_pool::queue_user_work_item([u_task, body = std::forward<TBody>(body)]() mutable
 			{
+				u_task->transit_to_running();
+
 				try
 				{
 					if constexpr (std::is_void_v<U>)
@@ -95,6 +97,39 @@ namespace cpptask
 			return task<U>(u_task);
 		}
 
+		template<class TBody>
+		static auto start_new(TBody&& body, std::stop_token s_token = {}) -> task<std::invoke_result_t<TBody>>
+		{
+			static_assert(std::is_void_v<T>, "Use task<>::run instead.");
+			
+			using U = std::invoke_result_t<TBody>;
+			std::shared_ptr u_task = std::make_shared<details::shared_task<U>>(s_token);
+
+			std::thread([u_task, body = std::forward<TBody>(body)]() mutable
+			{
+				u_task->transit_to_running();
+
+				try
+				{
+					if constexpr (std::is_void_v<U>)
+					{
+						body();
+						u_task->set_result();
+					}
+					else
+					{
+						auto r = body();
+						u_task->set_result(std::move(r));
+					}
+				}
+				catch (...)
+				{
+					u_task->try_set_exception(std::current_exception());
+				}
+			}).detach();
+			return task<U>(u_task);
+		}
+
 		static task<> delay(std::chrono::nanoseconds delay, std::stop_token s_token = {})
 		{
 			static_assert(std::is_void_v<T>, "Use task<>::delay instead.");
@@ -102,6 +137,7 @@ namespace cpptask
 			std::shared_ptr u_task = std::make_shared<details::shared_task<void>>(s_token);
 			details::thread_pool::queue_delayed_user_work_item(delay, [u_task]() mutable
 			{
+				u_task->transit_to_running();
 				u_task->set_result();
 			});
 
